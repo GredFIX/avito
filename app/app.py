@@ -45,7 +45,7 @@ def add_metrics():
         (not str(clicks).isdigit()) or (int(clicks) > 2147483647)
     ):
         return jsonify(error="incorrect 'clicks' type")
-    if (cost is not None) and (not re.search(r"^\d+\,\d\d\s[₽]$", str(cost))):
+    if (cost is not None) and (not re.search(r"^\d{1,16}\,\d\d\s[₽]$", str(cost))):
         return jsonify(error="incorrect 'cost' type")
     con = conn()
     cur = con.cursor()
