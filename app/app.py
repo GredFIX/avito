@@ -61,11 +61,21 @@ def add_metrics():
 # Get metricss
 @app.route("/metrics/<date>&<date1>", methods=["GET"])
 def get_metrics(date, date1):
+    try:
+        datetime.datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        return jsonify(error="incorrect 'date' type")
+
+    try:
+        datetime.datetime.strptime(date1, "%Y-%m-%d")
+    except ValueError:
+        return jsonify(error="incorrect 'date1' type")
+
     con = conn()
     cur = con.cursor()
     cur.execute(
         """SELECT date_m, SUM(views) AS views, SUM(clicks) AS clicks, SUM(cost) AS cost FROM metrics
-  				WHERE date_m BETWEEN %(date)s AND %(date1)s
+  				WHERE date_m BETWEEN SYMMETRIC %(date)s AND %(date1)s
   				GROUP BY date_m
   				ORDER BY date_m""",
         {"date": date, "date1": date1},
@@ -79,7 +89,7 @@ def get_metrics(date, date1):
         if d.get("cost") is None:
             cpc_m = cpm_m = None
         else:
-            cost = d.get("cost").replace(u"\u202f", "")
+            cost = d.get("cost").replace("\u202f", "")
             d.update(cost=cost)
             cost = float(re.search(r"\d*\.\d*", cost.replace(",", ".")).group(0))
             try:
